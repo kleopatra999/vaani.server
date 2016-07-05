@@ -8,6 +8,7 @@ const vaani = require('../index');
 const WebSocket = require('ws');
 const watson = require('watson-developer-cloud');
 const child_process = require('child_process');
+const fs = require('fs');
 
 const config = vaani.getConfig();
 
@@ -31,18 +32,23 @@ vaani.serve(config, () => {
         { rejectUnauthorized: false }
     );
     ws.on('open', () => {
-        var sox = call('sox', '-t wav - -t raw -b 16 -e signed -c 1 -r 16k -');
-        sox.stdout.on('data', (data) => {
+        //var sox = call('sox', '-t wav - -t raw -b 16 -e signed -c 1 -r 16k -');
+
+
+        var stream = fs.createReadStream('test_audio.raw');
+        stream.on('data', (data) => {
             ws.send(data);
         });
-        sox.stdout.on('close', () => {
+        stream.on('close', () => {
             ws.send('EOS');
         });
+
+        /*
         text_to_speech.synthesize({
             text: process.argv.slice(2, process.argv.length).join(' '),
             voice: 'en-US_AllisonVoice',
             accept: 'audio/wav'
-        }).pipe(sox.stdin);
+        }).pipe(sox.stdin);*/
     });
 
     var response;
